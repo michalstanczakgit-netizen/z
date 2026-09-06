@@ -1,3 +1,589 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>暗号解読 ★ Hex Decrypter — Dojo Terminal</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Shippori+Mincho:wght@700;800&family=M+PLUS+1:wght@400;500;700;800&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --bg-night: #14121f;
+  --bg-night-2: #201c33;
+  --red-lantern: #c8102e;
+  --red-lantern-dark: #8c0b20;
+  --gold-accent: #d9a441;
+  --gold-soft: #f0cf8a;
+  --paper: #f3e9d2;
+  --ink: #241a14;
+  --sakura: #f2a6c1;
+  --term-green: #50ff80;
+
+  --font-display: "Shippori Mincho", serif;
+  --font-ui: "M PLUS 1", sans-serif;
+  --font-mono: "Share Tech Mono", monospace;
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  margin: 0; padding: 0;
+  width: 100%; height: 100%;
+  background: var(--bg-night);
+  color: var(--paper);
+  font-family: var(--font-ui);
+  overflow: hidden;
+  user-select: none;
+}
+
+#stage {
+  position: relative;
+  width: 100vw; height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(ellipse at 50% 20%, var(--bg-night-2), var(--bg-night) 70%);
+}
+
+#sceneWrap {
+  position: relative;
+  height: min(100vh, 950px);
+  width: auto;
+  aspect-ratio: 9 / 16;
+  max-width: 100vw;
+  box-shadow: 0 0 0 2px rgba(217, 164, 65, 0.25), 0 30px 70px rgba(0,0,0,0.6);
+  border-radius: 6px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(180deg, #181428, #100d1c);
+}
+
+/* CRT scanlines */
+#sceneWrap::after {
+  content: " ";
+  display: block;
+  position: absolute;
+  top: 0; left: 0; bottom: 0; right: 0;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+  background-size: 100% 4px;
+  z-index: 20;
+  pointer-events: none;
+}
+
+.hidden { display: none !important; }
+
+/* HUD */
+#hud {
+  position: relative;
+  top: 0; left: 0; right: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 8px 12px 4px;
+  z-index: 5;
+  background: rgba(20, 18, 31, 0.85);
+  border-bottom: 2px solid rgba(217, 164, 65, 0.3);
+}
+
+.lantern {
+  background: linear-gradient(180deg, var(--red-lantern) 0%, var(--red-lantern-dark) 100%);
+  border: 2px solid var(--gold-accent);
+  border-radius: 8px 8px 14px 14px;
+  padding: 3px 8px 5px;
+  text-align: center;
+  min-width: 65px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.45);
+  position: relative;
+}
+
+.lantern::before {
+  content: "";
+  position: absolute;
+  top: -6px; left: 50%;
+  transform: translateX(-50%);
+  width: 3px; height: 6px;
+  background: var(--gold-accent);
+}
+
+.lantern-label {
+  display: block;
+  font-size: 8.5px;
+  letter-spacing: 0.06em;
+  color: var(--gold-soft);
+  margin-bottom: 2px;
+  font-weight: bold;
+}
+
+.lantern-value {
+  display: block;
+  font-family: var(--font-mono);
+  font-weight: 800;
+  font-size: clamp(14px, 3.5vw, 18px);
+  color: var(--paper);
+}
+
+.admin-trigger-btn {
+  background: linear-gradient(180deg, #8c0b20, #40050e);
+  border: 2px solid var(--gold-accent);
+  border-radius: 8px;
+  padding: 6px 10px;
+  color: var(--gold-soft);
+  font-size: 10px;
+  font-weight: 800;
+  cursor: pointer;
+  letter-spacing: 0.05em;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+  height: fit-content;
+  align-self: center;
+}
+
+/* MAIN AREA */
+#mainArea {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 8px 10px;
+  gap: 6px;
+  overflow-y: auto;
+  z-index: 2;
+}
+
+.screen-header {
+  text-align: center;
+  border-bottom: 1px dashed rgba(217, 164, 65, 0.4);
+  padding-bottom: 2px;
+}
+
+.kanji-sub {
+  font-family: var(--font-display);
+  color: var(--gold-soft);
+  font-size: 13px;
+  margin: 0;
+  letter-spacing: 0.08em;
+}
+
+.cipher-box {
+  background: rgba(10, 8, 16, 0.85);
+  border: 2px solid var(--gold-accent);
+  border-radius: 8px;
+  padding: 10px 6px;
+  text-align: center;
+  box-shadow: inset 0 0 15px rgba(0,0,0,0.9), 0 0 10px rgba(217, 164, 65, 0.2);
+}
+
+/* POWIĘKSZONE ZAKODOWANE HASŁO (HEX) */
+.hex-display {
+  font-family: var(--font-mono);
+  font-size: clamp(22px, 5.8vw, 28px);
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: 0.12em;
+  text-shadow: 0 0 12px rgba(240, 207, 138, 0.9), 0 0 20px rgba(217, 164, 65, 0.6);
+  margin: 6px 0 2px;
+  word-break: break-all;
+}
+
+.input-block {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.input-row {
+  display: flex;
+  gap: 8px;
+}
+
+#decodeInput {
+  flex: 1;
+  background: rgba(10, 8, 16, 0.8);
+  border: 2px solid var(--gold-accent);
+  border-radius: 6px;
+  color: var(--term-green);
+  font-family: var(--font-mono);
+  font-size: 18px;
+  text-align: center;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  outline: none;
+  padding: 5px;
+  box-shadow: inset 0 0 8px rgba(0,0,0,0.8);
+}
+
+#decodeInput:focus {
+  border-color: var(--gold-soft);
+  box-shadow: 0 0 8px rgba(240, 207, 138, 0.4);
+}
+
+.action-btn {
+  background: linear-gradient(180deg, var(--gold-soft), var(--gold-accent));
+  border: 2px solid #8a6a2c;
+  color: var(--ink);
+  font-family: var(--font-ui);
+  font-weight: 800;
+  font-size: 15px;
+  padding: 0 18px;
+  cursor: pointer;
+  border-radius: 6px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+
+.action-btn:active { transform: scale(0.96); }
+
+.terminal-log {
+  flex: 1;
+  min-height: 40px;
+  background: rgba(10, 8, 16, 0.85);
+  border: 1px solid rgba(217, 164, 65, 0.3);
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  line-height: 1.3;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.log-entry { margin: 0; }
+.log-success { color: var(--term-green); }
+.log-error { color: #ff5566; }
+.log-info { color: var(--gold-soft); }
+
+/* TABELA ASCII CHEAT-SHEET */
+.cheat-sheet {
+  background: rgba(10, 8, 16, 0.98);
+  border-top: 3px solid var(--gold-accent);
+  padding: 10px 8px 12px;
+  z-index: 5;
+  box-shadow: 0 -12px 30px rgba(0,0,0,0.8);
+}
+
+.cheat-title {
+  font-size: 11px;
+  color: var(--gold-soft);
+  text-align: center;
+  margin-bottom: 8px;
+  letter-spacing: 0.12em;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.cheat-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+  text-align: center;
+  font-family: var(--font-mono);
+}
+
+.cheat-item {
+  background: linear-gradient(180deg, rgba(217, 164, 65, 0.18), rgba(217, 164, 65, 0.08));
+  border: 1.5px solid rgba(217, 164, 65, 0.45);
+  padding: 7px 0;
+  border-radius: 5px;
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.5), inset 0 0 6px rgba(0,0,0,0.4);
+}
+
+.cheat-item span {
+  color: var(--term-green);
+  font-weight: 800;
+  font-size: 15px;
+  text-shadow: 0 0 5px rgba(80, 255, 128, 0.4);
+}
+
+/* SCREENS */
+.screen {
+  position: absolute;
+  inset: 0;
+  background: rgba(10, 8, 16, 0.88);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.torii-frame {
+  position: relative;
+  width: min(90%, 400px);
+  padding: 32px 18px 22px;
+  text-align: center;
+  background: linear-gradient(180deg, #201933, #171226);
+  border-left: 8px solid var(--red-lantern);
+  border-right: 8px solid var(--red-lantern);
+  border-radius: 4px;
+  box-shadow: 0 30px 60px rgba(0,0,0,0.6);
+}
+
+.torii-frame::before,
+.torii-frame::after {
+  content: "";
+  position: absolute;
+  left: -8px; right: -8px;
+  height: 12px;
+  background: var(--red-lantern);
+  border-radius: 3px;
+}
+.torii-frame::before { top: 12px; }
+.torii-frame::after { top: 26px; height: 5px; }
+
+.torii-frame--dim { border-color: #5a4a5e; }
+.torii-frame--dim::before, .torii-frame--dim::after { background: #5a4a5e; }
+
+.torii-frame--gold { border-color: var(--gold-accent); }
+.torii-frame--gold::before, .torii-frame--gold::after { background: var(--gold-accent); }
+
+.crest {
+  width: 38px; height: 38px;
+  margin: 0 auto 10px;
+  border: 2px solid var(--gold-accent);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 18px;
+  color: var(--gold-soft);
+  background: rgba(217,164,65,0.08);
+}
+
+.kanji-title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(20px, 6vw, 28px);
+  color: var(--gold-soft);
+  margin: 0 0 4px;
+}
+
+.sub-title {
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--paper);
+  margin-bottom: 14px;
+  opacity: 0.85;
+}
+
+.hint-text {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--gold-soft);
+  margin-bottom: 18px;
+  opacity: 0.9;
+}
+
+.btn {
+  font-family: var(--font-ui);
+  font-weight: 800;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  color: var(--ink);
+  background: linear-gradient(180deg, var(--gold-soft), var(--gold-accent));
+  border: 2px solid #8a6a2c;
+  border-radius: 8px;
+  padding: 10px 20px;
+  cursor: pointer;
+  box-shadow: 0 6px 14px rgba(0,0,0,0.4);
+}
+
+.btn-secondary {
+  background: linear-gradient(180deg, #3a3252, #241f38);
+  color: var(--paper);
+  border: 2px solid var(--gold-accent);
+}
+
+.win-code-label {
+  font-size: 10px;
+  color: var(--gold-soft);
+  margin-top: 6px;
+  letter-spacing: 0.1em;
+}
+
+.win-code {
+  font-family: var(--font-mono);
+  font-size: 22px;
+  font-weight: bold;
+  color: var(--term-green);
+  letter-spacing: 0.12em;
+  border: 2px dashed var(--gold-accent);
+  padding: 8px;
+  margin: 6px 0 16px;
+  background: rgba(0,0,0,0.5);
+  border-radius: 6px;
+}
+
+.admin-input {
+  width: 100%;
+  background: rgba(0,0,0,0.5);
+  border: 2px solid var(--gold-accent);
+  color: var(--paper);
+  padding: 8px;
+  text-align: center;
+  font-family: var(--font-mono);
+  margin-bottom: 12px;
+  border-radius: 6px;
+}
+
+.admin-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  margin-bottom: 10px;
+  color: var(--paper);
+}
+
+.admin-row input[type="checkbox"] {
+  accent-color: var(--gold-accent);
+  width: 16px; height: 16px;
+}
+</style>
+</head>
+<body>
+
+<div id="stage">
+  <div id="sceneWrap">
+    
+    <!-- Top HUD -->
+    <div id="hud">
+      <div class="lantern">
+        <span class="lantern-label">CZAS</span>
+        <span class="lantern-value" id="timerVal">60s</span>
+      </div>
+      <button class="admin-trigger-btn" id="adminBtn">⚡ ADMIN</button>
+      <div class="lantern">
+        <span class="lantern-label">POSTĘP</span>
+        <span class="lantern-value" id="progressVal">0/5</span>
+      </div>
+    </div>
+
+    <!-- Main Game Terminal -->
+    <div id="mainArea">
+      <div class="screen-header">
+        <p class="kanji-sub">暗号解読 // HEX DECRYPTER</p>
+      </div>
+
+      <div class="cipher-box">
+        <span class="lantern-label">PRZECHWYCONY SYGNAŁ (HEX)</span>
+        <div class="hex-display" id="hexDisplay">43 59 42 45 52</div>
+      </div>
+
+      <div class="input-block">
+        <span class="lantern-label">SZYFR ASCII (ODKODUJ)</span>
+        <div class="input-row">
+          <input type="text" id="decodeInput" autocomplete="off" placeholder="SŁOWO" maxlength="12">
+          <button class="action-btn" id="submitBtn">OK</button>
+        </div>
+      </div>
+
+      <span class="lantern-label" style="margin-top: 2px;">DZIENNIK SYSTEMOWY</span>
+      <div class="terminal-log" id="terminalLog">
+        <p class="log-entry log-info">> Terminal gotowy. Rozpocznij odkodowywanie.</p>
+      </div>
+    </div>
+
+    <!-- ASCII Cheat-Sheet -->
+    <div class="cheat-sheet">
+      <div class="cheat-title" id="cheatTitle">TABELA ASCII (A-Z)</div>
+      <div class="cheat-grid" id="cheatGrid">
+        <!-- Generowane dynamicznie -->
+      </div>
+    </div>
+
+    <!-- SCREENS -->
+
+    <!-- Start Screen -->
+    <div id="startScreen" class="screen">
+      <div class="torii-frame">
+        <div class="crest">鍵</div>
+        <p class="kanji-title">暗号解読</p>
+        <p class="sub-title">HEX DECRYPTER — DOJO TERMINAL</p>
+        <p class="hint-text">
+          Przełóż kody HEX na tekst ASCII.<br>
+          Zmieść się w czasie <b>60 sekund</b>.<br>
+          Zdekoduj <b>5 słów z rzędu</b>.<br>
+          <span style="color:#ff5566; font-weight:bold;">UWAGA:</span> Po zgadnięciu 2 haseł tabela ASCII zmienia się losowo co słowo!
+        </p>
+        <button class="btn" id="startBtn">START</button>
+      </div>
+    </div>
+
+    <!-- Lose Screen -->
+    <div id="loseScreen" class="screen hidden">
+      <div class="torii-frame torii-frame--dim">
+        <div class="crest">終</div>
+        <p class="kanji-title" style="font-size:22px">Przerwanie transmisji</p>
+        <p class="sub-title">BŁĄD SYGNAŁU</p>
+        <p class="hint-text" id="loseReason" style="color:var(--paper)">Upłynął czas lub popełniono błąd.</p>
+        <button class="btn" id="restartBtn">SPRÓBUJ PONOWNIE</button>
+      </div>
+    </div>
+
+    <!-- Win Screen -->
+    <div id="winScreen" class="screen hidden">
+      <div class="torii-frame torii-frame--gold">
+        <div class="crest">勝</div>
+        <p class="kanji-title" style="font-size:22px">Mistrz dekodowania!</p>
+        <p class="sub-title">SYGNAŁ PRZECHWYCONY</p>
+        <p class="win-code-label">KOD WYGRANEJ</p>
+        <div class="win-code">d11Jf8</div>
+        <button class="btn" id="playAgainBtn">ZAGRAJ PONOWNIE</button>
+      </div>
+    </div>
+
+    <!-- Admin Auth Screen -->
+    <div id="adminAuthScreen" class="screen hidden">
+      <div class="torii-frame torii-frame--gold">
+        <div class="crest">⚡</div>
+        <p class="kanji-title" style="font-size:22px">Panel Admina</p>
+        <p class="sub-title">PODAJ HASŁO DOSTĘPU</p>
+        <input type="password" id="adminPassInput" class="admin-input" placeholder="Wpisz hasło...">
+        <p id="adminAuthMsg" style="font-size:11px; color:#ff5566; margin-top:-6px;"></p>
+        <div style="display:flex; gap:8px; justify-content:center;">
+          <button class="btn" id="adminLoginBtn">ZALOGUJ</button>
+          <button class="btn btn-secondary" id="closeAdminAuthBtn">ANULUJ</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Admin Panel Screen -->
+    <div id="adminPanelScreen" class="screen hidden">
+      <div class="torii-frame torii-frame--gold">
+        <div class="crest">⚡</div>
+        <p class="kanji-title" style="font-size:22px">Panel Admina</p>
+        <p class="sub-title">OPCJE DEWELOPERA</p>
+        <div style="text-align:left; margin-bottom:14px;">
+          <div class="admin-row">
+            <span>Zamrożenie czasu (Freeze):</span>
+            <input type="checkbox" id="freezeTimeToggle">
+          </div>
+          <div class="admin-row">
+            <span>Pokaż odpowiedź:</span>
+            <button class="btn btn-secondary" id="revealAnsBtn" style="padding: 3px 8px; font-size:11px;">POKAŻ</button>
+          </div>
+        </div>
+        <div style="display:flex; gap:8px; justify-content:center;">
+          <button class="btn btn-secondary" id="addProgressBtn">+1 POSTĘP</button>
+          <button class="btn" id="closeAdminPanelBtn">ZAMKNIJ</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
 <script>
 (() => {
   "use strict";
@@ -106,7 +692,7 @@
     decodeInput.value = "";
     decodeInput.focus();
 
-    // ZMIANA: Tabela miesza się po ukończeniu 2 haseł (streak >= 2)
+    // Tabela miesza się po ukończeniu 2 haseł (streak >= 2)
     if (streak >= 2) {
       renderCheatSheet(true);
       addLog("WYKRYTO ZAKŁÓCENIA: Układ tabeli ASCII został zmieniony!", "error");
@@ -244,3 +830,5 @@
   renderCheatSheet(false);
 })();
 </script>
+</body>
+</html>
