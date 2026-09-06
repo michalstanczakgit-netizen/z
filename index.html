@@ -175,7 +175,6 @@ html, body {
   box-shadow: inset 0 0 15px rgba(0,0,0,0.9), 0 0 10px rgba(217, 164, 65, 0.2);
 }
 
-/* POWIĘKSZONE ZAKODOWANE HASŁO (HEX) */
 .hex-display {
   font-family: var(--font-mono);
   font-size: clamp(22px, 5.8vw, 28px);
@@ -513,8 +512,7 @@ html, body {
         <p class="hint-text">
           Przełóż kody HEX na tekst ASCII.<br>
           Zmieść się w czasie <b>60 sekund</b>.<br>
-          Zdekoduj <b>5 słów z rzędu</b>.<br>
-          <span style="color:#ff5566; font-weight:bold;">UWAGA:</span> Po zgadnięciu 2 haseł tabela ASCII zmienia się losowo co słowo!
+          Zdekoduj <b>5 słów z rzędu</b>, aby wygrać!
         </p>
         <button class="btn" id="startBtn">START</button>
       </div>
@@ -650,7 +648,6 @@ html, body {
     }
 
     if (shuffle) {
-      // Algorytm Fisher-Yates do miksowania kolejności
       for (let i = chars.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [chars[i], chars[j]] = [chars[j], chars[i]];
@@ -692,7 +689,6 @@ html, body {
     decodeInput.value = "";
     decodeInput.focus();
 
-    // Tabela miesza się po ukończeniu 2 haseł (streak >= 2)
     if (streak >= 2) {
       renderCheatSheet(true);
       addLog("WYKRYTO ZAKŁÓCENIA: Układ tabeli ASCII został zmieniony!", "error");
