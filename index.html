@@ -50,7 +50,7 @@ html, body {
 
 #sceneWrap {
   position: relative;
-  height: min(100vh, 900px);
+  height: min(100vh, 950px);
   width: auto;
   aspect-ratio: 9 / 16;
   max-width: 100vw;
@@ -83,7 +83,7 @@ html, body {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  padding: 10px 12px 6px;
+  padding: 8px 12px 4px;
   z-index: 5;
   background: rgba(20, 18, 31, 0.85);
   border-bottom: 2px solid rgba(217, 164, 65, 0.3);
@@ -93,7 +93,7 @@ html, body {
   background: linear-gradient(180deg, var(--red-lantern) 0%, var(--red-lantern-dark) 100%);
   border: 2px solid var(--gold-accent);
   border-radius: 8px 8px 14px 14px;
-  padding: 4px 8px 6px;
+  padding: 3px 8px 5px;
   text-align: center;
   min-width: 65px;
   box-shadow: 0 4px 10px rgba(0,0,0,0.45);
@@ -146,8 +146,8 @@ html, body {
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: 12px;
-  gap: 10px;
+  padding: 8px 10px;
+  gap: 6px;
   overflow-y: auto;
   z-index: 2;
 }
@@ -155,40 +155,42 @@ html, body {
 .screen-header {
   text-align: center;
   border-bottom: 1px dashed rgba(217, 164, 65, 0.4);
-  padding-bottom: 6px;
+  padding-bottom: 2px;
 }
 
 .kanji-sub {
   font-family: var(--font-display);
   color: var(--gold-soft);
-  font-size: 15px;
+  font-size: 13px;
   margin: 0;
   letter-spacing: 0.08em;
 }
 
 .cipher-box {
-  background: rgba(217, 164, 65, 0.06);
-  border: 1px solid var(--gold-accent);
+  background: rgba(10, 8, 16, 0.85);
+  border: 2px solid var(--gold-accent);
   border-radius: 8px;
-  padding: 10px;
+  padding: 10px 6px;
   text-align: center;
-  box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+  box-shadow: inset 0 0 15px rgba(0,0,0,0.9), 0 0 10px rgba(217, 164, 65, 0.2);
 }
 
+/* POWIĘKSZONE ZAKODOWANE HASŁO (HEX) */
 .hex-display {
   font-family: var(--font-mono);
-  font-size: clamp(16px, 4.5vw, 22px);
-  color: var(--gold-soft);
+  font-size: clamp(22px, 5.8vw, 28px);
+  font-weight: 800;
+  color: #ffffff;
   letter-spacing: 0.12em;
-  text-shadow: 0 0 8px rgba(217, 164, 65, 0.6);
-  margin: 6px 0;
+  text-shadow: 0 0 12px rgba(240, 207, 138, 0.9), 0 0 20px rgba(217, 164, 65, 0.6);
+  margin: 6px 0 2px;
   word-break: break-all;
 }
 
 .input-block {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 3px;
 }
 
 .input-row {
@@ -208,7 +210,7 @@ html, body {
   letter-spacing: 0.12em;
   text-transform: uppercase;
   outline: none;
-  padding: 6px;
+  padding: 5px;
   box-shadow: inset 0 0 8px rgba(0,0,0,0.8);
 }
 
@@ -234,18 +236,18 @@ html, body {
 
 .terminal-log {
   flex: 1;
-  min-height: 85px;
+  min-height: 40px;
   background: rgba(10, 8, 16, 0.85);
   border: 1px solid rgba(217, 164, 65, 0.3);
   border-radius: 6px;
-  padding: 8px;
+  padding: 4px 8px;
   font-family: var(--font-mono);
-  font-size: 11px;
-  line-height: 1.4;
+  font-size: 10.5px;
+  line-height: 1.3;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
 }
 
 .log-entry { margin: 0; }
@@ -253,41 +255,54 @@ html, body {
 .log-error { color: #ff5566; }
 .log-info { color: var(--gold-soft); }
 
-/* ===================== ASCII CHEAT SHEET ===================== */
+/* ===================== TABELA ASCII CHEAT-SHEET ===================== */
 .cheat-sheet {
-  background: rgba(20, 18, 31, 0.95);
-  border-top: 2px solid var(--gold-accent);
-  padding: 8px;
+  background: rgba(10, 8, 16, 0.98);
+  border-top: 3px solid var(--gold-accent);
+  padding: 10px 8px 12px;
   z-index: 5;
+  box-shadow: 0 -12px 30px rgba(0,0,0,0.8);
 }
 
 .cheat-title {
-  font-size: 10px;
+  font-size: 12px;
   color: var(--gold-soft);
   text-align: center;
-  margin-bottom: 6px;
-  letter-spacing: 0.1em;
-  font-weight: bold;
+  margin-bottom: 8px;
+  letter-spacing: 0.14em;
+  font-weight: 800;
+  text-transform: uppercase;
 }
 
 .cheat-grid {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 3px;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
   text-align: center;
   font-family: var(--font-mono);
-  font-size: 10px;
 }
 
 .cheat-item {
-  background: rgba(217, 164, 65, 0.08);
-  border: 1px solid rgba(217, 164, 65, 0.2);
-  padding: 2px 0;
-  border-radius: 3px;
-  color: var(--paper);
+  background: linear-gradient(180deg, rgba(217, 164, 65, 0.18), rgba(217, 164, 65, 0.08));
+  border: 1.5px solid rgba(217, 164, 65, 0.45);
+  padding: 7px 0;
+  border-radius: 5px;
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.5), inset 0 0 6px rgba(0,0,0,0.4);
 }
 
-.cheat-item span { color: var(--gold-soft); font-weight: bold; }
+.cheat-item span {
+  color: var(--term-green);
+  font-weight: 800;
+  font-size: 15px;
+  text-shadow: 0 0 5px rgba(80, 255, 128, 0.4);
+}
 
 /* ===================== EKRANY ===================== */
 .screen {
@@ -473,7 +488,7 @@ html, body {
         </div>
       </div>
 
-      <span class="lantern-label" style="margin-top: 4px;">DZIENNIK SYSTEMOWY</span>
+      <span class="lantern-label" style="margin-top: 2px;">DZIENNIK SYSTEMOWY</span>
       <div class="terminal-log" id="terminalLog">
         <p class="log-entry log-info">> Terminal gotowy. Rozpocznij odkodowywanie.</p>
       </div>
@@ -574,7 +589,6 @@ html, body {
 (() => {
   "use strict";
 
-  // Wskazana pula haseł + 2 dodatkowe pasujące klimatem (KATANA, RONIN)
   const GAME_WORDS = [
     "YAROI", "RANCHER", "ASHLEY", "KUROYAMI", "GWIAZDKI", 
     "ELITA", "VECTOR", "STORM", "SKRADANIE", "SAMURAJ", 
@@ -587,6 +601,7 @@ html, body {
   const START_TIME = 60;
   const TIME_PENALTY = 10;
   const TIME_BONUS = 5;
+  const ADMIN_PASS = "19122005"; // Nowe hasło admina
 
   let currentWord = "";
   let streak = 0;
@@ -627,7 +642,7 @@ html, body {
   const revealAnsBtn = document.getElementById("revealAnsBtn");
   const addProgressBtn = document.getElementById("addProgressBtn");
 
-  // Wypełnianie tabeli pomocniczej ASCII (A-Z)
+  // Wypełnianie dużej tabeli ASCII (A-Z)
   function initCheatSheet() {
     cheatGrid.innerHTML = "";
     for (let i = 65; i <= 90; i++) {
@@ -753,7 +768,7 @@ html, body {
   });
 
   adminLoginBtn.addEventListener("click", () => {
-    if (adminPassInput.value === "ELITA") {
+    if (adminPassInput.value === ADMIN_PASS) {
       adminAuthScreen.classList.add("hidden");
       adminPanelScreen.classList.remove("hidden");
     } else {
